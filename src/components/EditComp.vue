@@ -7,7 +7,7 @@
         </div>
         <div class="user_detail_cls">
             <div class="times_label_cls">模板diy次数: {{userInfo.num}}次</div>
-            <span type="danger" class="get_times_cls" @click="getDIYTimes">获取次数</span>
+            <!-- <span type="danger" class="get_times_cls" @click="getDIYTimes">获取次数</span> -->
         </div>
     </div>
     <div id="poster" class="poster_cls" v-if="!showBuyDialog">
@@ -32,52 +32,67 @@
         </div>
         <div class="common_item_cls"
             :data-index="index"
-            data-cate="pic"
             :style="getIconStyle(item)"
             v-for="(item, index) in iconInfos"
             :key="index"
-            @click.prevent
-            @touchstart.prevent
-            @touchstart="drawXY">
-            <img width="100%" src="@/assets/default_head.png"/>
+            @click="clickItem(0,item)"
+            @touchstart="startDragIcon">
+            <img width="100%" :src="iconImage"/>
         </div>
     </div>
     <div class="edit_container_cls" v-if="!showBuyDialog">
-        <div v-if="curSelectItem && curSelectItem.value.length > 0">
-            <div class="item_group_cls">
-                <van-field class="item_content_cls" v-model="curSelectItem.value" label="内容" />
-            </div>
-            <div class="item_group_cls">
+        <van-list v-if="curSelectItem" class="edit_content_cls">
+            <van-cell class="item_group_cls">
+                <van-field class="item_content_cls" v-model="curSelectItem.value" />
+            </van-cell>
+            <van-cell class="item_group_cls">
                 <div>字体颜色</div>
                 <div class="item_color_cls">
-                    <div class="color_preview_cls" :style="{background:curSelectItem.color}"></div>
-                    <!-- <color v-model="curSelectItem.color"></color> -->
+                    <!-- <div class="color_preview_cls" :style="{background:curSelectItem.color}"></div> -->
+                    <swatches-picker @input="updateColor" v-model="pickerColor"></swatches-picker>
                 </div>
-            </div>
-            <div class="item_group_cls">
+            </van-cell>
+            <van-cell class="item_group_cls">
                 <div class="item_label_cls">字体大小</div>
                 <van-slider v-model="curSelectItem.size" :min="30" :max="360"/>
-            </div>
-            <van-button type="primary" class="common_button_cls" @click="createPic" block>生成海报</van-button>
+            </van-cell>
+            <van-cell class="item_btn_cls">
+                <van-button type="primary" class="common_button_cls" @click="createPic" block>预览</van-button>
+            </van-cell>
+        </van-list>
+        <div v-else>
+            <van-uploader :after-read="afterRead">
+                <van-button icon="plus" type="primary" class="common_button_cls">更换图片</van-button>
+            </van-uploader>
         </div>
     </div>
     <div v-if="showBuyDialog">
         <DialogInput @confirmHandler="onConfirmInput"></DialogInput>
     </div>
+    <PreviewShow v-if="showPreview" @closePreviewEvent='closePreview' :imageUrl="resultBanner"></PreviewShow>
   </div>
 </template>
 
 <script>
 import DialogInput from './DialogInput.vue'
+import PreviewShow from './PreviewShow.vue'
+import DataModel from '../api/DataModel'
+import { Swatches } from "vue-color";
 import { getBannerDetail, getUserInfo } from '../api/api'
-import { loadFont,getPxToVW, getUrlVars } from '../util/utils'
+import { loadFont,getPxToVW } from '../util/utils'
+import default_head from '@/assets/default_head.png'
+import CommonUtil from '../util/CommonUtil';
 export default {
   name: 'EditComp',
   components:{
-    DialogInput
+    DialogInput,
+    PreviewShow,
+    "swatches-picker":Swatches,
   },
   data () {
     return {
+        "width":750,
+        "height":422,
         "userInfo":{},
         "back_url": "",
         "template_id": '',
@@ -86,37 +101,45 @@ export default {
         "otherInfos":"",
         "iconInfos":"",
         "curSelectItem":null,
-        "subTemplateList": [],
-        "subTemplateIndex": 0,
         "fontId": '',
         "myTimesTxt":"剩余0次",
-        "showBuyDialog":true
+        "showBuyDialog":true,
+        "showPreview":false,
+        "iconImage":default_head,
+        "pickerColor":{},
+        "resultBanner":''
     }
   },
   created: function () {
-    let that = this
-    // 模板详情
-    that.template_id = getUrlVars('templateId');
+    this.width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
+    this.height = 422*this.width/750
+    console.log(this.width + '---' + this.height)
+    this.template_id = DataModel.getUrlParams()['templateId'];
     getUserInfo().then(res=>{
         this.userInfo = res.data;
     })
   },
   methods:{
     onConfirmInput(data){
-        let that = this;
-        getBannerDetail(that.template_id,data.name,data.age).then(res=>{
+        getBannerDetail(this.template_id,data.name,data.age).then(res=>{
             let data = res.data
             this.showBuyDialog = false;
             console.log(data)
-            that.back_url = data.back_pic
-            that.fontId = loadFont(data.font_url);
-            that.subTemplateList = [data.extra];
+            this.back_url = data.back_pic
+            this.fontId = loadFont(data.font_url);
             this.nameInfos = data.extra.name || [];
             this.ageInfos = data.extra.age || [];
             this.otherInfos = data.extra.other_text || [];
             this.iconInfos = data.extra.pic || [];
             this.clickItem(1,this.nameInfos[0])
         })
+    },
+    closePreview(){
+        this.showPreview = false;
+        this.resultBanner = '';
+    },
+    updateColor(color){
+        this.curSelectItem.color = color.hex;
     },
     getTextStyle(item){
         let style = "";
@@ -126,9 +149,19 @@ export default {
         style += `left: ${getPxToVW(item.x)}vw;`;
         style += `top: ${getPxToVW(item.y)}vw;`;
         style += `width:${getPxToVW(item.w)}vw;`;
-        style += `textAlign: ${item.textAlign};`;
+        style += `text-align: ${item.textAlign};`;
         style += `color:${item.color};`;
-        style += `transform: rotate(${item.rotation}deg)`;
+        style += `transform: rotate(${item.rotation}deg);`;
+        if(item.shadow){
+            style += `textShadow: ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor};`;
+        }
+        if(item.stroke){
+            style += `textStroke:${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
+            style += `webkitTextStroke: ${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
+        }
+        if(item.border){
+            style += `border:1px dashed #000;`;
+        }
         return style;
     },
     getIconStyle(item){
@@ -140,63 +173,87 @@ export default {
         style += `transform: rotate(${item.rotation}deg);`;
         return style;
     },
-    getShow(){
-        return {show:this.showBuyDialog}
-    },
     createPic(){
-        let that = this
-        html2canvas(document.getElementById('poster'), {
-            allowTaint: true,
-            useCORS: true,
-        }).then(function(canvas) {
-            console.log(canvas.toDataURL());
-            document.body.appendChild(canvas);
-            // that.convertCanvasToImg(canvas)
-            var dataUrl = canvas.toDataURL("image/png");
-            wx.miniProgram.navigateTo({
-                url: `/pages/save/index?dataUrl=${dataUrl}`,
+        let that = this;
+        CommonUtil.showLoading('生成中');
+        if(this.curSelectItem) this.curSelectItem.border = false;
+        this.$forceUpdate();
+        // this.clearBorder()
+        setTimeout(() => {
+            html2canvas(document.getElementById('poster'), {
+                allowTaint: true,
+                useCORS: true,
+            }).then(function(canvas) {
+                // console.log(canvas.toDataURL());
+                // document.body.appendChild(canvas);
+                // that.convertCanvasToImg(canvas)
+                that.resultBanner = canvas.toDataURL("image/png");
+                that.showPreview = true;
+                CommonUtil.hideLoading();
+                // let dataUrl = canvas.toDataURL("image/png");
+                // wx.miniProgram.navigateTo({
+                //     url: `/pages/save/index?dataUrl=${dataUrl}`,
+                // });
             });
-        });
+        }, 1000);
     },
-    getDIYTimes(){
-        this.showBuyDialog = true;
-    },
-    close(){
-
-    },
-    clickItem(type,item){
-        this.curSelectItem = item;
-        if(type != 0){
-
+    clearBorder(){
+        let eles = document.getElementsByClassName('common_item_cls');
+        if(!eles || eles.length == 0) return;
+        for(let i = 0,len = eles.length;i < len;i++){
+            let ele = eles[i];
+            ele.border = 'none'
         }
     },
-    drawXY(el){
+    getDIYTimes(){},
+    afterRead(file){
+      // 此时可以自行将文件上传至服务器
+      this.iconImage = file.content;
+    },
+    clickItem(type,item){
+        if(this.curSelectItem){
+            this.curSelectItem.border = false;
+        }
+        if(type != 0){
+            this.curSelectItem = item;
+            this.curSelectItem.border = true;
+        }
+        else{
+            this.curSelectItem = null;
+        }
+    },
+    startDragIcon(el){
         let that = this
         let oDiv = el.currentTarget; //当前元素
         let index = oDiv.dataset.index
-        let cate = oDiv.dataset.cate
-        let disX = el.touches[0].clientX - oDiv.offsetLeft;
-        let disY = el.touches[0].clientY - oDiv.offsetTop;
-        document.ontouchmove = function (e) {
+        let iconInfo = this.iconInfos[index]
+        let disX = el.targetTouches[0].clientX;
+        let disY = el.targetTouches[0].clientY;
+        let dx = oDiv.offsetLeft;
+        let dy = oDiv.offsetTop;
+        let moveFunc = (e)=>{
             //通过事件委托，计算移动的距离
-            let l = e.touches[0].clientX - disX;
-            let t = e.touches[0].clientY - disY;
+            let l = e.targetTouches[0].clientX - disX + dx;
+            let t = e.targetTouches[0].clientY - disY + dy;
             //移动当前元素
-            // if (l >= 0 && l <= window.innerWidth - oDiv.offsetWidth) {
             if (l >= 0 && l <= that.width - oDiv.offsetWidth) {
-                that.subTemplateList[that.subTemplateIndex][cate][index].x = l
+                oDiv.style.left = l + 'px';
+                // iconInfo.x = l
             }
             //移动当前元素
-            // if (t >= 0 && t <= window.innerHeight - oDiv.offsetHeight ) {
             if (t >= 0 && t <= that.height - oDiv.offsetHeight ) {
-                that.subTemplateList[that.subTemplateIndex][cate][index].y = t
+                oDiv.style.top = t + 'px';
+                // iconInfo.y = t
             }
-        };
-        document.ontouchcancel = document.ontouchend = function (e) {
-            document.ontouchmove = null;
-            document.ontouchcancel = null;
-            document.ontouchend = null;
         }
+        let endFunc = ()=>{
+            document.removeEventListener('touchmove',moveFunc);
+            document.removeEventListener('touchcancel',endFunc);
+            document.removeEventListener('touchend',endFunc);
+        }
+        document.addEventListener('touchmove',moveFunc);
+        document.addEventListener('touchcancel',endFunc);
+        document.addEventListener('touchend',endFunc);
     },
   }
 }
@@ -232,11 +289,22 @@ export default {
         position: absolute;
         border-bottom: 1px solid #eee;
     }
+    .common_item_cls img {
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+    }
     .edit_container_cls {
         position: relative;
         display: flex;
         justify-content: center;
         flex-direction: column;
+        overflow-y: scroll;
+        height: calc(100vh - 88.5vw);
+    }
+    .edit_content_cls {
+        width: 100%;
+        overflow-y: auto;
     }
     .item_group_cls {
         text-align: left;
@@ -253,43 +321,56 @@ export default {
     }
     .item_group_cls .item_color_cls {
         margin-top: 1vw;
-        display: flex;
     }
     .item_group_cls .item_label_cls{
         display: inline-block;
         margin: 0 0 4vw 0;
     }
+    .item_group_cls .van-slider {
+        margin: 0 auto;
+        width: 80vw;
+        height: 2.5vw;
+        margin-bottom: 2.5vw;
+    }
     .item_color_cls .color_preview_cls {
         width: 10vw;
+        height: 10vw;
         background: #ff0000;
         margin-right: 10px;
+    }
+    .item_color_cls .vc-swatches {
+        width: 90vw;
+    }
+    .item_btn_cls {
+        padding:2.5vw;
     }
     .common_button_cls {
         width: 50vw;
         height: 10vw;
         margin: 0 auto;
         font-size: 5vw;
+        position: relative;
     }
     .head_info_cls {
         display: flex;
         flex-direction: row;
     }
     .userinfo_avatar_cls {
-        width: 128px;
-        height: 128px;
-        margin: 40px 20px 20px 30px;
+        width: 18vw;
+        height: 18vw;
+        margin: 7.5vw 5vw;
     }
     .user_nickname_cls {
         display: block;
-        padding-top: 50px;
+        padding-top: 9vw;
         font-weight: bold;
-        margin-left: 10px;
+        margin-left: 1vw;
     }
     .user_detail_cls {
         display: block;
         position: absolute;
-        top: 110px;
-        left: 180px;
+        top: 18vw;
+        left: 28vw;
     }
     .times_label_cls {
         display: inline-block;
