@@ -2,35 +2,35 @@
   <div class="card_body">
     <div class="head_cls">
         <div class="head_info_cls">
-            <img shape="square" class="userinfo_avatar_cls" :src="userInfo.avatarurl">
-            <div class="user_nickname_cls">{{userInfo.nickname}}</div>
+            <img shape="square" class="userinfo_avatar_cls" :src="userInfo&&userInfo.avatarurl">
+            <div class="user_nickname_cls">{{userInfo&&userInfo.nickname}}</div>
         </div>
         <div class="user_detail_cls">
-            <div class="times_label_cls">模板diy次数: {{userInfo.num}}次</div>
+            <div class="times_label_cls">模板diy次数: {{userInfo&&userInfo.num}}次</div>
             <!-- <span type="danger" class="get_times_cls" @click="getDIYTimes">获取次数</span> -->
         </div>
     </div>
     <div id="poster" class="poster_cls" v-if="!showBuyDialog">
         <img class="bg_image_cls" :src="back_url + '?_=' + Date.now()" crossorigin="anonymous"/>
-        <div class="common_item_cls" 
+        <div class="common_text_cls" 
             v-for="(item, index) in nameInfos"
             :style="getTextStyle(item)"
             :key="'name_'+index"
             @click="clickItem(1,item)">{{ item.value }}
         </div>
-        <div class="common_item_cls"
+        <div class="common_text_cls"
             :style="getTextStyle(item)"
             v-for="(item, index) in ageInfos"
             :key="'age_'+index"
             @click="clickItem(2,item)">{{ item.value }}
         </div>
-        <div class="common_item_cls"
+        <div class="common_text_cls"
             :style="getTextStyle(item)"
             v-for="(item, index) in otherInfos"
             :key="'other_'+index"
             @click="clickItem(3,item)">{{ item.value }}
         </div>
-        <div class="common_item_cls"
+        <div class="common_icon_cls"
             :data-index="index"
             :style="getIconStyle(item)"
             v-for="(item, index) in iconInfos"
@@ -41,7 +41,7 @@
         </div>
     </div>
     <div class="edit_container_cls" v-if="!showBuyDialog">
-        <van-list v-if="curSelectItem" class="edit_content_cls">
+        <van-list v-if="operateType != 0" class="edit_content_cls">
             <van-cell class="item_group_cls">
                 <van-field class="item_content_cls" v-model="curSelectItem.value" />
             </van-cell>
@@ -61,9 +61,18 @@
             </van-cell>
         </van-list>
         <div v-else>
-            <van-uploader :after-read="afterRead">
-                <van-button icon="plus" type="primary" class="common_button_cls">更换图片</van-button>
-            </van-uploader>
+            <van-cell class="item_group_cls">
+                <van-uploader :after-read="afterRead" class="van_uploader_cls">
+                    <van-button plain type="primary" icon="plus" class="change_button_cls">更换图片</van-button>
+                </van-uploader>
+            </van-cell>
+            <van-cell class="item_group_cls">
+                <div class="item_label_cls">旋转角度</div>
+                <van-slider v-model="curSelectItem.rotation" :min="0" :max="360"/>
+            </van-cell>
+            <van-cell class="item_btn_cls">
+                <van-button type="primary" class="common_button_cls" @click="createPic" block>预览</van-button>
+            </van-cell>
         </div>
     </div>
     <div v-if="showBuyDialog">
@@ -101,6 +110,7 @@ export default {
         "otherInfos":"",
         "iconInfos":"",
         "curSelectItem":null,
+        "operateType":0,
         "fontId": '',
         "myTimesTxt":"剩余0次",
         "showBuyDialog":true,
@@ -198,7 +208,7 @@ export default {
         }, 1000);
     },
     clearBorder(){
-        let eles = document.getElementsByClassName('common_item_cls');
+        let eles = document.getElementsByClassName('common_text_cls');
         if(!eles || eles.length == 0) return;
         for(let i = 0,len = eles.length;i < len;i++){
             let ele = eles[i];
@@ -214,12 +224,10 @@ export default {
         if(this.curSelectItem){
             this.curSelectItem.border = false;
         }
+        this.curSelectItem = item;
+        this.operateType = type;
         if(type != 0){
-            this.curSelectItem = item;
             this.curSelectItem.border = true;
-        }
-        else{
-            this.curSelectItem = null;
         }
     },
     startDragIcon(el){
@@ -285,19 +293,22 @@ export default {
         border-bottom: 1px solid #999;
         background: #eff2f5;
     }
-    .common_item_cls {
+    .common_text_cls {
         position: absolute;
-        border-bottom: 1px solid #eee;
     }
-    .common_item_cls img {
+    .common_icon_cls {
+        position: absolute;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+    .common_icon_cls img {
         width: 100%;
         height: 100%;
-        border-radius: 50%;
     }
     .edit_container_cls {
         position: relative;
         display: flex;
-        justify-content: center;
+        justify-content: flex-start;
         flex-direction: column;
         overflow-y: scroll;
         height: calc(100vh - 88.5vw);
@@ -350,6 +361,18 @@ export default {
         margin: 0 auto;
         font-size: 5vw;
         position: relative;
+    }
+    .van_uploader_cls {
+        width: 40vw;
+        margin: 0 auto;
+        display: block;
+    }
+    .change_button_cls {
+        position: relative;
+        width: 40vw;
+        height: 10vw;
+        font-size: 4vw;
+        border-radius: 5vw;
     }
     .head_info_cls {
         display: flex;
