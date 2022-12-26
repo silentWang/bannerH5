@@ -75,6 +75,30 @@
             </van-cell>
         </div>
     </div>
+    <div v-if="cropperData && cropperData.img" class="cropper_cls">
+        <div class="cropper_container_cls">
+            <vueCropper
+                ref="cropper"
+                :img="cropperData.img"
+                :outputSize="cropperData.outputSize"
+                :outputType="cropperData.outputType"
+                :canScale="cropperData.canScale"
+                :autoCrop="cropperData.autoCrop"
+                :autoCropWidth="cropperData.autoCropWidth"
+                :autoCropHeight="cropperData.autoCropHeight"
+                :canMoveBox="cropperData.canMoveBox"
+                :canMove="cropperData.canMove"
+                :centerBox="cropperData.centerBox"
+                :info="cropperData.info"
+                :fixedBox="cropperData.fixedBox"
+            ></vueCropper>
+        </div>
+        <div class="scale_cell_cls">
+            <van-button type="normal" class="scale_btn_cls" @click="changeImageScale(1)">放大</van-button>
+            <van-button type="normal" class="scale_btn_cls" @click="changeImageScale(-1)">缩小</van-button>
+        </div>
+        <van-button class="common_button_cls" type="primary" @click="confirmCrop">确定</van-button>
+    </div>
     <div v-if="showBuyDialog">
         <DialogInput @confirmHandler="onConfirmInput"></DialogInput>
     </div>
@@ -113,6 +137,8 @@ export default {
         "operateType":0,
         "fontId": '',
         "myTimesTxt":"剩余0次",
+        "cropperData":null,
+        "curImageScale":1,
         "showBuyDialog":true,
         "showPreview":false,
         "iconImage":default_head,
@@ -216,9 +242,31 @@ export default {
         }
     },
     getDIYTimes(){},
+    changeImageScale(num){
+        if(!this.cropperData) return;
+        num = num || 1
+        this.$refs.cropper.changeScale(num)
+    },
     afterRead(file){
-      // 此时可以自行将文件上传至服务器
-      this.iconImage = file.content;
+        let wid = this.width/2;
+        let hgt = this.curSelectItem.h*wid/this.curSelectItem.w;
+        this.cropperData = {
+            img:file.content,
+            outputSize:1,
+            outputType:"jpg",
+            canScale:true,
+            autoCrop:true,
+            info:false,
+            autoCropWidth:wid,
+            autoCropHeight:hgt,
+            canMoveBox:true,
+            fixed: true,
+            fixedNumber: [1, 1],
+            fixedBox:true,
+            full:true,
+            canMove:false,
+            centerBox:true
+        }
     },
     clickItem(type,item){
         if(this.curSelectItem){
@@ -263,6 +311,12 @@ export default {
         document.addEventListener('touchcancel',endFunc);
         document.addEventListener('touchend',endFunc);
     },
+    confirmCrop(){
+        this.$refs.cropper.getCropData(data => {
+            this.iconImage = data;
+            this.cropperData = null;
+        })
+    }
   }
 }
 </script>
@@ -362,6 +416,21 @@ export default {
         font-size: 5vw;
         position: relative;
     }
+    .scale_cell_cls {
+        background: rgba(0, 0, 0, 0);
+        margin: 0 auto;
+        width: 50vw;
+        margin-top: 5vw;
+    }
+    .scale_btn_cls {
+        width: 20vw;
+        height: 8vw;
+        font-size: 4vw;
+        margin: 0 1vw;
+        border-radius: 2vw;
+        color: #eee;
+        background: #b42ac7;
+    }
     .van_uploader_cls {
         width: 40vw;
         margin: 0 auto;
@@ -404,5 +473,20 @@ export default {
         margin: 0 0 5px 10px;
         color: #ff0000;
         border-bottom: 1px #ff0000 solid;
+    }
+    .cropper_cls {
+        width: 100%;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        top: 0;
+        background: rgba(0, 0, 0, 0.7);
+    }
+    .cropper_container_cls {
+        width: 100%;
+        height: 80%;
+    }
+    .cropper_cls .common_button_cls {
+        margin-top: 3vw;
     }
 </style>

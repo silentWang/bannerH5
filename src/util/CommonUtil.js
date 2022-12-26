@@ -8,7 +8,12 @@ export default class CommonUtil {
         });
         setTimeout(() => {
             this.hideLoading();
-        }, 5000);
+        }, 3000);
+    }
+
+    static showToast(tips){
+        if(!tips) return;
+        Toast(tips);
     }
 
     static hideLoading(){

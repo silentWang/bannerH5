@@ -7,10 +7,13 @@ import Vant from 'vant';
 import 'vant/lib/index.css';
 import router from './router'
 import axios from 'axios';
+import VueCropper from 'vue-cropper' 
 
 Vue.config.productionTip = false
 Vue.prototype.axios = axios;
 Vue.use(Vant);
+Vue.use(VueCropper)
+
 
 /* eslint-disable no-new */
 new Vue({

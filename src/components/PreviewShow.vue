@@ -35,16 +35,23 @@ export default {
                 let params = DataModel.getUrlParams();
                 uploadTemplateInfo(params.templateId,this.imageUrl).then((response)=>{
                     CommonUtil.hideLoading();
-                    if(response.code != 0) return;
+                    if(response.code != 0) {
+                        CommonUtil.showToast(response.msg);
+                        return;
+                    }
+                    CommonUtil.showToast('生成成功');
+                    // wx.downloadImage({
+                    //     serverId: response.data.pic_url,//图片的地址
+                    //     success:function(res){
+                    //         console.log('图片保存成功',res)
+                    //     }
+                    // })
                     wx.miniProgram.switchTab({
                         url: '../mine/mine',
-                    });
-                    wx.downloadImage({
-                        serverId: response.data.pic_url,//图片的地址
                         success:function(res){
-                            console.log('图片保存成功',res)
+                            res.eventChannel.emit('downloadBannerEvent',{imageurl:response.data.pic_url})
                         }
-                    })
+                    });
                 })
             }).catch(() => {
                 // on cancel
