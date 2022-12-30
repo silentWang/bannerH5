@@ -20,6 +20,7 @@ class DataModel {
                 }
             }
             this.urlParams = kv;
+            console.log('urlParams',this.urlParams)
         }
         return this.urlParams;
     }

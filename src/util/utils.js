@@ -1,4 +1,5 @@
 export function getPxToVW(px,base = 750){
+    if(!px) return 0;
     let vw = 100 * px/base;
     return vw;
 }

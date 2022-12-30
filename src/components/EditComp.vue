@@ -43,9 +43,9 @@
     <div class="edit_container_cls" v-if="!showBuyDialog">
         <van-list v-if="operateType != 0" class="edit_content_cls">
             <van-cell class="item_group_cls">
-                <van-field class="item_content_cls" v-model="curSelectItem.value" />
+                <van-field class="item_content_cls" v-model="curSelectItem.value" :maxlength="curSelectItem.maxlength" />
             </van-cell>
-            <van-cell class="item_group_cls">
+            <van-cell class="item_group_cls" v-if="hideColorPicker">
                 <div>字体颜色</div>
                 <div class="item_color_cls">
                     <!-- <div class="color_preview_cls" :style="{background:curSelectItem.color}"></div> -->
@@ -139,6 +139,7 @@ export default {
         "myTimesTxt":"剩余0次",
         "cropperData":null,
         "curImageScale":1,
+        "hideColorPicker":false,
         "showBuyDialog":true,
         "showPreview":false,
         "iconImage":default_head,
@@ -151,16 +152,18 @@ export default {
     this.height = 422*this.width/750
     console.log(this.width + '---' + this.height)
     this.template_id = DataModel.getUrlParams()['templateId'];
+    console.log('template_id:',this.template_id)
     getUserInfo().then(res=>{
+        if(res.code != 0) return CommonUtil.showToast(res.msg)
         this.userInfo = res.data;
     })
   },
   methods:{
     onConfirmInput(data){
         getBannerDetail(this.template_id,data.name,data.age).then(res=>{
+            if(res.code != 0) return CommonUtil.showToast(res.msg)
             let data = res.data
             this.showBuyDialog = false;
-            console.log(data)
             this.back_url = data.back_pic
             this.fontId = loadFont(data.font_url);
             this.nameInfos = data.extra.name || [];
@@ -188,6 +191,10 @@ export default {
         style += `text-align: ${item.textAlign};`;
         style += `color:${item.color};`;
         style += `transform: rotate(${item.rotation}deg);`;
+        style += `letterSpacing: ${getPxToVW(item.letterSpacing)};`;
+        if(item.wordBreak){
+            style += `wordBreak: ${item.wordBreak};`;
+        }
         if(item.shadow){
             style += `textShadow: ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor};`;
         }
@@ -214,7 +221,6 @@ export default {
         CommonUtil.showLoading('生成中');
         if(this.curSelectItem) this.curSelectItem.border = false;
         this.$forceUpdate();
-        // this.clearBorder()
         setTimeout(() => {
             html2canvas(document.getElementById('poster'), {
                 allowTaint: true,
@@ -232,14 +238,6 @@ export default {
                 // });
             });
         }, 1000);
-    },
-    clearBorder(){
-        let eles = document.getElementsByClassName('common_text_cls');
-        if(!eles || eles.length == 0) return;
-        for(let i = 0,len = eles.length;i < len;i++){
-            let ele = eles[i];
-            ele.border = 'none'
-        }
     },
     getDIYTimes(){},
     changeImageScale(num){
@@ -294,7 +292,6 @@ export default {
             //移动当前元素
             if (l >= 0 && l <= that.width - oDiv.offsetWidth) {
                 oDiv.style.left = l + 'px';
-                // iconInfo.x = l
             }
             //移动当前元素
             if (t >= 0 && t <= that.height - oDiv.offsetHeight ) {
@@ -328,24 +325,25 @@ export default {
         display: flex;
         flex-direction: column;
     }
-    .poster_cls {
-        width: 100vw;
-        height: 56.26vw;
-        position: relative;
-        overflow: hidden;
-    }
-    .bg_image_cls {
-        width: 100%;
-        position: absolute;
-        left: 0;
-        right: 0;
-    }
     .head_cls {
         height: 30vw;
         margin-bottom: 2vw;
         font-size: 4.8vw;
         border-bottom: 1px solid #999;
         background: #eff2f5;
+    }
+    .poster_cls {
+        width: 100vw;
+        height: 56vw;
+        position: relative;
+        overflow: hidden;
+    }
+    .bg_image_cls {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        left: 0;
+        right: 0;
     }
     .common_text_cls {
         position: absolute;
