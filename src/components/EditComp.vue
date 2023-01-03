@@ -16,18 +16,21 @@
             v-for="(item, index) in nameInfos"
             :style="getTextStyle(item)"
             :key="'name_'+index"
+            :data-content="item.value"
             @click="clickItem(1,item)">{{ item.value }}
         </div>
         <div class="common_text_cls"
             :style="getTextStyle(item)"
             v-for="(item, index) in ageInfos"
             :key="'age_'+index"
+            :data-content="item.value"
             @click="clickItem(2,item)">{{ item.value }}
         </div>
         <div class="common_text_cls"
             :style="getTextStyle(item)"
             v-for="(item, index) in otherInfos"
             :key="'other_'+index"
+            :data-content="item.value"
             @click="clickItem(3,item)">{{ item.value }}
         </div>
         <div class="common_icon_cls"
@@ -201,6 +204,14 @@ export default {
         if(item.stroke){
             style += `textStroke:${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
             style += `webkitTextStroke: ${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
+
+
+            // ::before {
+            //     content: attr(data-content);
+            //     position: absolute;
+            //     -webkit-text-stroke: 0;
+            // }
+
         }
         if(item.border){
             style += `border:1px dashed #000;`;
@@ -344,6 +355,11 @@ export default {
         position: absolute;
         left: 0;
         right: 0;
+    }
+    [data-content]::before {
+        content: attr(data-content);
+        position: absolute;
+        -webkit-text-stroke: 0;
     }
     .common_text_cls {
         position: absolute;
