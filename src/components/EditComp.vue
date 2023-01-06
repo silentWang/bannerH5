@@ -17,6 +17,7 @@
             :style="getTextStyle(item)"
             :key="'name_'+index"
             :data-content="item.value"
+            @touchstart="startDragIcon"
             @click="clickItem(1,item)">{{ item.value }}
         </div>
         <div class="common_text_cls"
@@ -24,6 +25,7 @@
             v-for="(item, index) in ageInfos"
             :key="'age_'+index"
             :data-content="item.value"
+            @touchstart="startDragIcon"
             @click="clickItem(2,item)">{{ item.value }}
         </div>
         <div class="common_text_cls"
@@ -31,6 +33,7 @@
             v-for="(item, index) in otherInfos"
             :key="'other_'+index"
             :data-content="item.value"
+            @touchstart="startDragIcon"
             @click="clickItem(3,item)">{{ item.value }}
         </div>
         <div class="common_icon_cls"
@@ -145,6 +148,7 @@ export default {
         "hideColorPicker":false,
         "showBuyDialog":true,
         "showPreview":false,
+        "sizeValue":0,
         "iconImage":default_head,
         "pickerColor":{},
         "resultBanner":''
@@ -153,7 +157,6 @@ export default {
   created: function () {
     this.width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
     this.height = 422*this.width/750
-    console.log(this.width + '---' + this.height)
     this.template_id = DataModel.getUrlParams()['templateId'];
     console.log('template_id:',this.template_id)
     getUserInfo().then(res=>{
@@ -186,32 +189,25 @@ export default {
     getTextStyle(item){
         let style = "";
         style += `fontSize: ${getPxToVW(item.size)}vw;`;
-        style += `fontWeight:${item.bold ? 'bold' : ''};`;
+        style += `fontWeight:${item.bold ? true : 'normal'};`;
         style += `fontFamily:${this.fontId};`;
         style += `left: ${getPxToVW(item.x)}vw;`;
         style += `top: ${getPxToVW(item.y)}vw;`;
         style += `width:${getPxToVW(item.w)}vw;`;
         style += `text-align: ${item.textAlign};`;
         style += `color:${item.color};`;
-        style += `transform: rotate(${item.rotation}deg);`;
         style += `letterSpacing: ${getPxToVW(item.letterSpacing)};`;
+        style += `transform: rotate(${item.rotation ? item.rotation : 0}deg) scalex(${item.scalex ? item.scalex : 1}) scaley(${item.scaley ? item.scaley : 1});`;
         if(item.wordBreak){
             style += `wordBreak: ${item.wordBreak};`;
         }
         if(item.shadow){
-            style += `textShadow: ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor};`;
+            style += `filter:drop-shadow(${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor});`;
+            // style += `textShadow: ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor};`;
         }
         if(item.stroke){
             style += `textStroke:${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
             style += `webkitTextStroke: ${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
-
-
-            // ::before {
-            //     content: attr(data-content);
-            //     position: absolute;
-            //     -webkit-text-stroke: 0;
-            // }
-
         }
         if(item.border){
             style += `border:1px dashed #000;`;
@@ -282,6 +278,7 @@ export default {
             this.curSelectItem.border = false;
         }
         this.curSelectItem = item;
+        item.size = parseInt(item.size)
         this.operateType = type;
         if(type != 0){
             this.curSelectItem.border = true;
@@ -289,9 +286,9 @@ export default {
     },
     startDragIcon(el){
         let that = this
-        let oDiv = el.currentTarget; //当前元素
-        let index = oDiv.dataset.index
-        let iconInfo = this.iconInfos[index]
+        let oDiv = el.currentTarget;
+        // let index = oDiv.dataset.index
+        // let iconInfo = this.iconInfos[index]
         let disX = el.targetTouches[0].clientX;
         let disY = el.targetTouches[0].clientY;
         let dx = oDiv.offsetLeft;
@@ -307,7 +304,6 @@ export default {
             //移动当前元素
             if (t >= 0 && t <= that.height - oDiv.offsetHeight ) {
                 oDiv.style.top = t + 'px';
-                // iconInfo.y = t
             }
         }
         let endFunc = ()=>{
@@ -361,6 +357,13 @@ export default {
         position: absolute;
         -webkit-text-stroke: 0;
     }
+    /* [data-content]::after {
+        content: attr(data-content);
+        position: absolute;
+        z-index: -1;
+        -webkit-text-stroke: 1.33333vw #333;
+        color: #333;
+    } */
     .common_text_cls {
         position: absolute;
     }
