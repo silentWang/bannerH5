@@ -116,6 +116,7 @@
 import DialogInput from './DialogInput.vue'
 import PreviewShow from './PreviewShow.vue'
 import DataModel from '../api/DataModel'
+import domtoimage from 'dom-to-image';
 import { Swatches } from "vue-color";
 import { getBannerDetail, getUserInfo } from '../api/api'
 import { loadFont,getPxToVW } from '../util/utils'
@@ -189,14 +190,14 @@ export default {
     getTextStyle(item){
         let style = "";
         style += `fontSize: ${getPxToVW(item.size)}vw;`;
-        style += `fontWeight:${item.bold ? true : 'normal'};`;
+        style += `fontWeight:${item.bold ? 'bold' : 'normal'};`;
         style += `fontFamily:${this.fontId};`;
         style += `left: ${getPxToVW(item.x)}vw;`;
         style += `top: ${getPxToVW(item.y)}vw;`;
         style += `width:${getPxToVW(item.w)}vw;`;
         style += `text-align: ${item.textAlign};`;
         style += `color:${item.color};`;
-        style += `letterSpacing: ${getPxToVW(item.letterSpacing)};`;
+        style += `letterSpacing: ${getPxToVW(item.letterSpacing)}vw;`;
         style += `transform: rotate(${item.rotation ? item.rotation : 0}deg) scalex(${item.scalex ? item.scalex : 1}) scaley(${item.scaley ? item.scaley : 1});`;
         if(item.wordBreak){
             style += `wordBreak: ${item.wordBreak};`;
@@ -229,21 +230,29 @@ export default {
         if(this.curSelectItem) this.curSelectItem.border = false;
         this.$forceUpdate();
         setTimeout(() => {
-            html2canvas(document.getElementById('poster'), {
-                allowTaint: true,
-                useCORS: true,
-            }).then(function(canvas) {
-                // console.log(canvas.toDataURL());
-                // document.body.appendChild(canvas);
-                // that.convertCanvasToImg(canvas)
-                that.resultBanner = canvas.toDataURL("image/png");
+            let poster = document.getElementById('poster')
+            domtoimage.toPng(poster).then((dataUrl)=>{
+                this.resultBanner = dataUrl;
                 that.showPreview = true;
                 CommonUtil.hideLoading();
-                // let dataUrl = canvas.toDataURL("image/png");
-                // wx.miniProgram.navigateTo({
-                //     url: `/pages/save/index?dataUrl=${dataUrl}`,
-                // });
-            });
+            }).catch(err=>{
+                console.log('to png err:',err);
+            })
+            // html2canvas(poster, {
+            //     allowTaint: true,
+            //     useCORS: true,
+            // }).then(function(canvas) {
+            //     // console.log(canvas.toDataURL());
+            //     // document.body.appendChild(canvas);
+            //     // that.convertCanvasToImg(canvas)
+            //     that.resultBanner = canvas.toDataURL("image/png");
+            //     that.showPreview = true;
+            //     CommonUtil.hideLoading();
+            //     // let dataUrl = canvas.toDataURL("image/png");
+            //     // wx.miniProgram.navigateTo({
+            //     //     url: `/pages/save/index?dataUrl=${dataUrl}`,
+            //     // });
+            // });
         }, 1000);
     },
     getDIYTimes(){},
