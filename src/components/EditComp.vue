@@ -12,7 +12,7 @@
     </div>
     <div id="poster" class="poster_cls" v-if="!showBuyDialog">
         <img class="bg_image_cls" :src="back_url + '?_=' + Date.now()" crossorigin="anonymous"/>
-        <div class="common_text_cls" 
+        <div class="common_text_cls"
             v-for="(item, index) in nameInfos"
             :style="getTextStyle(item)"
             :key="'name_'+index"
@@ -117,6 +117,7 @@ import DialogInput from './DialogInput.vue'
 import PreviewShow from './PreviewShow.vue'
 import DataModel from '../api/DataModel'
 import domtoimage from 'dom-to-image';
+import html2canvas from 'html2canvas'
 import { Swatches } from "vue-color";
 import { getBannerDetail, getUserInfo } from '../api/api'
 import { loadFont,getPxToVW } from '../util/utils'
@@ -152,7 +153,9 @@ export default {
         "sizeValue":0,
         "iconImage":default_head,
         "pickerColor":{},
-        "resultBanner":''
+        "resultBanner":'',
+        "back_pic_h": 0,
+        "back_pic_w": 0,
     }
   },
   created: function () {
@@ -177,6 +180,8 @@ export default {
             this.ageInfos = data.extra.age || [];
             this.otherInfos = data.extra.other_text || [];
             this.iconInfos = data.extra.pic || [];
+            this.back_pic_h = data.back_pic_h
+            this.back_pic_w = data.back_pic_w
             this.clickItem(1,this.nameInfos[0])
         })
     },
@@ -203,12 +208,12 @@ export default {
             style += `wordBreak: ${item.wordBreak};`;
         }
         if(item.shadow){
-            style += `filter:drop-shadow(${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor});`;
-            // style += `textShadow: ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor};`;
+            // style += `filter:drop-shadow(${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor});`;
+            style += `--textShadow: ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${getPxToVW(item.shadowSize)}vw ${item.shadowColor};`;
         }
         if(item.stroke){
-            style += `textStroke:${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
-            style += `webkitTextStroke: ${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
+            style += `--textStroke:${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
+            style += `--webkitTextStroke: ${getPxToVW(item.strokeSize)}vw ${item.strokeColor};`;
         }
         if(item.border){
             style += `border:1px dashed #000;`;
@@ -229,30 +234,36 @@ export default {
         CommonUtil.showLoading('生成中');
         if(this.curSelectItem) this.curSelectItem.border = false;
         this.$forceUpdate();
+
+        console.log(that.back_pic_w)
+        console.log(that.back_pic_h)
         setTimeout(() => {
             let poster = document.getElementById('poster')
-            domtoimage.toPng(poster).then((dataUrl)=>{
-                this.resultBanner = dataUrl;
-                that.showPreview = true;
-                CommonUtil.hideLoading();
-            }).catch(err=>{
-                console.log('to png err:',err);
-            })
-            // html2canvas(poster, {
-            //     allowTaint: true,
-            //     useCORS: true,
-            // }).then(function(canvas) {
-            //     // console.log(canvas.toDataURL());
-            //     // document.body.appendChild(canvas);
-            //     // that.convertCanvasToImg(canvas)
-            //     that.resultBanner = canvas.toDataURL("image/png");
+
+            // domtoimage.toSvg(poster).then((dataUrl)=>{
+            //     this.resultBanner = dataUrl;
             //     that.showPreview = true;
             //     CommonUtil.hideLoading();
-            //     // let dataUrl = canvas.toDataURL("image/png");
-            //     // wx.miniProgram.navigateTo({
-            //     //     url: `/pages/save/index?dataUrl=${dataUrl}`,
-            //     // });
-            // });
+            // }).catch(err=>{
+            //     console.log('to png err:',err);
+            // })
+
+            html2canvas(poster, {
+                allowTaint: true,
+                useCORS: true,
+                scale: 4, // 处理模糊问题
+            }).then(function(canvas) {
+                // console.log(canvas.toDataURL());
+                // document.body.appendChild(canvas);
+                // that.convertCanvasToImg(canvas)
+                that.resultBanner = canvas.toDataURL("image/png");
+                that.showPreview = true;
+                CommonUtil.hideLoading();
+                // let dataUrl = canvas.toDataURL("image/png");
+                // wx.miniProgram.navigateTo({
+                //     url: `/pages/save/index?dataUrl=${dataUrl}`,
+                // });
+            });
         }, 1000);
     },
     getDIYTimes(){},
@@ -362,10 +373,17 @@ export default {
         right: 0;
     }
     [data-content]::before {
-        content: attr(data-content);
-        position: absolute;
-        -webkit-text-stroke: 0;
+      content: attr(data-content);
+      position: absolute;
+      -webkit-text-stroke: var(--webkitTextStroke);
+      text-shadow: var(--textShadow);
+      z-index: -1;
     }
+    /*[data-content]::before {*/
+    /*    content: attr(data-content);*/
+    /*    position: absolute;*/
+    /*    -webkit-text-stroke: 0;*/
+    /*}*/
     /* [data-content]::after {
         content: attr(data-content);
         position: absolute;
