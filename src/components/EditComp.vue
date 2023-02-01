@@ -289,7 +289,7 @@ export default {
             fixedNumber: [1, 1],
             fixedBox:true,
             full:true,
-            canMove:false,
+            canMove:true,
             centerBox:true
         }
     },
