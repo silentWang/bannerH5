@@ -121,7 +121,7 @@ import html2canvas from 'html2canvas'
 import { Swatches } from "vue-color";
 import { getBannerDetail, getUserInfo } from '../api/api'
 import { loadFont,getPxToVW } from '../util/utils'
-import default_head from '@/assets/default_head.png'
+import default_head from '@/assets/head.jpg'
 import CommonUtil from '../util/CommonUtil';
 export default {
   name: 'EditComp',
