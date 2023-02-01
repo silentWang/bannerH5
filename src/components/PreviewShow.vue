@@ -4,7 +4,7 @@
             <img :src="imageUrl">
             <van-row class="btn_list_cls">
                 <van-button class="btn_cls" type="primary" @click="clickClose">重新diy</van-button>
-                <van-button class="btn_cls" type="primary" @click="saveToPhone">保存到手机</van-button>
+                <van-button class="btn_cls" type="primary" @click="saveToPhone">保存模板</van-button>
             </van-row>
         </div>
     </div>
