@@ -160,7 +160,7 @@ export default {
   },
   created: function () {
     this.width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
-    this.height = 422*this.width/750
+    this.height = 420*this.width/750
     this.template_id = DataModel.getUrlParams()['templateId'];
     console.log('template_id:',this.template_id)
     getUserInfo().then(res=>{
