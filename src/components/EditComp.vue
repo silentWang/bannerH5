@@ -133,7 +133,7 @@ export default {
   data () {
     return {
         "width":750,
-        "height":422,
+        "height":421.89,
         "userInfo":{},
         "back_url": "",
         "template_id": '',
@@ -160,7 +160,7 @@ export default {
   },
   created: function () {
     this.width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
-    this.height = 420*this.width/750
+    this.height = 421.89*this.width/750
     this.template_id = DataModel.getUrlParams()['templateId'];
     console.log('template_id:',this.template_id)
     getUserInfo().then(res=>{
@@ -361,7 +361,7 @@ export default {
     }
     .poster_cls {
         width: 100vw;
-        height: 56vw;
+        height: 56.25vw;
         position: relative;
         overflow: hidden;
     }
