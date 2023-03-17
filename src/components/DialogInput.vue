@@ -12,7 +12,7 @@
             </div>
         </div>
         <van-popup v-model="showAgePicker" round position="bottom">
-            <van-picker :columns="ageSelectList" 
+            <van-picker :columns="ageSelectList"
                 title="选择年龄" show-toolbar
                 @cancel="showAgePicker = false" @confirm="confirmAge" />
         </van-popup>
@@ -25,7 +25,7 @@ export default {
         return {
             "ageSelectList":[],
             "enterName":'',
-            "enterAge":18,
+            "enterAge":1,
             "showAgePicker":false
         }
     },
