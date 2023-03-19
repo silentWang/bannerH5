@@ -2,6 +2,7 @@
     <div class="container_cls">
         <div class="content_cls">
             <img :src="imageUrl">
+            <div class="watermark_cls">松鼠模板</div>
             <van-row class="btn_list_cls">
                 <van-button class="btn_cls" type="primary" @click="clickClose">重新diy</van-button>
                 <van-button class="btn_cls" type="primary" @click="saveToPhone">保存到手机</van-button>
@@ -80,6 +81,16 @@ export default {
     width: 100vw;
     display: block;
     position: relative;
+}
+.watermark_cls {
+    position: absolute;
+    padding: 16vw 0 0 6vw;
+    font-size: 20vw;
+    -webkit-transform: rotate(-25deg);
+    transform: rotate(-25deg);
+    opacity: 0.6;
+    color: #aaa;
+    font-style: oblique;
 }
 .btn_list_cls {
     position: relative;

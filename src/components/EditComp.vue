@@ -15,9 +15,8 @@
         <div class="common_text_cls"
             v-for="(item, index) in nameInfos"
             :style="getTextStyle(item)"
-            :key="'name_'+index"
+            :key="'name_' + index"
             :data-content="item.value"
-            @touchstart="startDragIcon"
             @click="clickItem(1,item)">{{ item.value }}
         </div>
         <div class="common_text_cls"
@@ -25,7 +24,6 @@
             v-for="(item, index) in ageInfos"
             :key="'age_'+index"
             :data-content="item.value"
-            @touchstart="startDragIcon"
             @click="clickItem(2,item)">{{ item.value }}
         </div>
         <div class="common_text_cls"
@@ -33,7 +31,6 @@
             v-for="(item, index) in otherInfos"
             :key="'other_'+index"
             :data-content="item.value"
-            @touchstart="startDragIcon"
             @click="clickItem(3,item)">{{ item.value }}
         </div>
         <div class="common_icon_cls"
@@ -133,7 +130,7 @@ export default {
   data () {
     return {
         "width":750,
-        "height":422,
+        "height":420,
         "userInfo":{},
         "back_url": "",
         "template_id": '',
@@ -160,7 +157,7 @@ export default {
   },
   created: function () {
     this.width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
-    this.height = 422*this.width/750
+    this.height = 422*this.width/750;
     this.template_id = DataModel.getUrlParams()['templateId'];
     console.log('template_id:',this.template_id)
     getUserInfo().then(res=>{
@@ -234,9 +231,6 @@ export default {
         CommonUtil.showLoading('生成中');
         if(this.curSelectItem) this.curSelectItem.border = false;
         this.$forceUpdate();
-
-        console.log(that.back_pic_w)
-        console.log(that.back_pic_h)
         setTimeout(() => {
             let poster = document.getElementById('poster')
 
@@ -250,13 +244,17 @@ export default {
 
             html2canvas(poster, {
                 allowTaint: true,
+                scale:window.devicePixelRatio,
                 useCORS: true,
+                // windowWidth:that.back_pic_w,
+                // windowHeight:that.back_pic_h,
                 scale: 4, // 处理模糊问题
             }).then(function(canvas) {
                 // console.log(canvas.toDataURL());
                 // document.body.appendChild(canvas);
                 // that.convertCanvasToImg(canvas)
-                that.resultBanner = canvas.toDataURL("image/png");
+                that.resultBanner = canvas.toDataURL("image/png",1);
+                console.log(that.resultBanner)
                 that.showPreview = true;
                 CommonUtil.hideLoading();
                 // let dataUrl = canvas.toDataURL("image/png");
