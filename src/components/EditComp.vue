@@ -118,7 +118,7 @@ import html2canvas from 'html2canvas'
 import { Swatches } from "vue-color";
 import { getBannerDetail, getUserInfo } from '../api/api'
 import { loadFont,getPxToVW } from '../util/utils'
-import default_head from '@/assets/default_head.png'
+import default_head from '@/assets/head.jpg'
 import CommonUtil from '../util/CommonUtil';
 export default {
   name: 'EditComp',
@@ -130,7 +130,7 @@ export default {
   data () {
     return {
         "width":750,
-        "height":420,
+        "height":421.89,
         "userInfo":{},
         "back_url": "",
         "template_id": '',
@@ -157,7 +157,7 @@ export default {
   },
   created: function () {
     this.width = (window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth);
-    this.height = 422*this.width/750;
+    this.height = 421.89*this.width/750
     this.template_id = DataModel.getUrlParams()['templateId'];
     console.log('template_id:',this.template_id)
     getUserInfo().then(res=>{
@@ -287,7 +287,7 @@ export default {
             fixedNumber: [1, 1],
             fixedBox:true,
             full:true,
-            canMove:false,
+            canMove:true,
             centerBox:true
         }
     },
@@ -359,7 +359,7 @@ export default {
     }
     .poster_cls {
         width: 100vw;
-        height: 56vw;
+        height: 56.25vw;
         position: relative;
         overflow: hidden;
     }
