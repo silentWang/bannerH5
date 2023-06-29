@@ -2,7 +2,7 @@
     <div class="container_cls">
         <div class="content_cls">
             <img :src="imageUrl">
-            <div class="watermark_cls">松鼠模板</div>
+            <img :src="watermarkIcon" class="watermark_cls">
             <van-row class="btn_list_cls">
                 <van-button class="btn_cls" type="primary" @click="clickClose">重新diy</van-button>
                 <van-button class="btn_cls" type="primary" @click="saveToPhone">保存模板</van-button>
@@ -12,16 +12,19 @@
 </template>
 
 <script>
+import watermark from '@/assets/watermark.png'
 import {Dialog} from 'vant'
 import DataModel from '../api/DataModel'
 import CommonUtil from '../util/CommonUtil'
-import { uploadTemplateInfo } from '../api/api';
+import { uploadTemplateInfo , getUserInfo} from '../api/api';
 export default {
     props:{
-        imageUrl:''
+        imageUrl:'',
     },
     data(){
-        return {}
+        return {
+            watermarkIcon:watermark,
+        }
     },
     methods:{
         clickClose(){
@@ -37,7 +40,17 @@ export default {
                 uploadTemplateInfo(params.templateId,this.imageUrl).then((response)=>{
                     CommonUtil.hideLoading();
                     if(response.code != 0) {
-                        CommonUtil.showToast(response.msg);
+                        if(response.code == 888){
+                            wx.miniProgram.navigateTo({
+                                url: '../pay/paypage',
+                                success:function(res){
+                                    res.eventChannel.emit('downloadBannerEvent',{imageurl:response.data.pic_url})
+                                }
+                            });
+                        }
+                        else{
+                            CommonUtil.showToast(response.msg);
+                        }
                         return;
                     }
                     CommonUtil.showToast('生成成功');
@@ -83,14 +96,8 @@ export default {
     position: relative;
 }
 .watermark_cls {
-    position: absolute;
-    padding: 16vw 0 0 6vw;
-    font-size: 20vw;
-    -webkit-transform: rotate(-25deg);
-    transform: rotate(-25deg);
-    opacity: 0.6;
-    color: #aaa;
-    font-style: oblique;
+    display: block;
+    position: absolute !important;
 }
 .btn_list_cls {
     position: relative;

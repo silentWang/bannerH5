@@ -113,12 +113,12 @@
 import DialogInput from './DialogInput.vue'
 import PreviewShow from './PreviewShow.vue'
 import DataModel from '../api/DataModel'
-import domtoimage from 'dom-to-image';
+// import domtoimage from 'dom-to-image';
 import html2canvas from 'html2canvas'
 import { Swatches } from "vue-color";
 import { getBannerDetail, getUserInfo } from '../api/api'
 import { loadFont,getPxToVW } from '../util/utils'
-import default_head from '@/assets/head.jpg'
+import default_head from '@/assets/default_head.jpg'
 import CommonUtil from '../util/CommonUtil';
 export default {
   name: 'EditComp',
@@ -163,6 +163,7 @@ export default {
     getUserInfo().then(res=>{
         if(res.code != 0) return CommonUtil.showToast(res.msg)
         this.userInfo = res.data;
+        DataModel.setUserInfo(res.data);
     })
   },
   methods:{
@@ -501,7 +502,7 @@ export default {
         margin-left: 1vw;
     }
     .user_detail_cls {
-        display: block;
+        display: none;
         position: absolute;
         top: 18vw;
         left: 28vw;
